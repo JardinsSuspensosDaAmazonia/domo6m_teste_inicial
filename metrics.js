@@ -124,7 +124,7 @@ Metrics.Vector.crossProduct = function (vector1, vector2) {
   );
 };
 
-// проекция вектора1 на вектор2, вдоль вектора2
+// projection of vector1 onto vector2, along vector2
 Metrics.Vector.project = function (vector1, vector2) {
   var square2 = Metrics.Vector.dotProduct(vector2, vector2);
 
@@ -276,8 +276,8 @@ Plane.prototype = {
 
 Plane.average = function (
   p1, p2,
-  acute, // true/false = разбивать острый/тупой угол
-  impossibleResult  // вернется если результат не определен
+  acute, // true/false = break an acute/obtuse angle
+  impossibleResult  // will return if the result is undefined
 ) {
   if (arguments.length < 3) {
     return [
@@ -288,7 +288,7 @@ Plane.average = function (
   p1 = p1.clone().normalize();
   p2 = p2.clone().normalize();
   var cos = p1.normal().cosWith(p2.normal());
-  // cos > 0 => сумма нормалей внутри тупого угла => сумма нормальных плоскостей внутри острого
+  // cos > 0 => sum of normals inside an obtuse angle => sum of normal planes inside an acute angle
   var revert = cos > 0 ^ acute;
   var ret = p1._add(revert ? p2.revert() : p2).normalize();
   if (isNaN(ret.A) || isNaN(ret.B) || isNaN(ret.C) || isNaN(ret.D))
@@ -331,7 +331,7 @@ Solutions = {
     }
 
     /**
-     * вычел 1) из 2, 3) получается такая система: 
+     * subtracted 1) from 2, 3) the following system is obtained: 
      * 5) Px*A + Py*B + Pz*C = Pd
      * 6) Qx*A + Qy*B + Qz*C = Qd
      * +4)  A*A +  B*B +  C*C = 1
@@ -352,7 +352,7 @@ Solutions = {
        * 7,8 =>  9) (Pd - Py*B - Pz*C) * Qx = (Qd - Qy*B - Qz*C) * Px
        * 9 =>   10) (Qy*Px - Py*Qx)*B + (Qz*Px - Pz*Qx)*C = Qd*Px - Pd*Qx
        * 5,6 => 11) (Qx*Py - Px*Qy)*A + (Qz*Py - Pz*Qy)*C = Qd*Py - Pd*Qy
-       * => переход к новым буквам
+       * => transition to new letters
        */
       var _Ry = Q.y * P.x - P.y * Q.x, _Rz = Q.z * P.x - P.z * Q.x, _Rd = Qd * P.x - Pd * Q.x;
       var _Sx = Q.x * P.y - P.x * Q.y, _Sz = Q.z * P.y - P.z * Q.y, _Sd = Qd * P.y - Pd * Q.y;
@@ -419,7 +419,7 @@ Solutions = {
       // debug
       n.mapi = mapi;
       n.sols = sols;
-      // крутим обратно (через вперед)))
+      // turn back (through forward)))
       for (var j = mapi; j < 3; j++) {
         n.carousel();
       }

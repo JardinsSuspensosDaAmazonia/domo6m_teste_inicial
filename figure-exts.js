@@ -2,7 +2,7 @@
 	var __pointsEnum, __points, __faces, __lines;
 
 	/**
-	 * Деление фейсов фигуры (равные дуги)
+	 * Dividing the faces of a figure (equal arcs)
 	 * @return this
 	 */
 	Figure.prototype.splitFaces_EA = function(N) {

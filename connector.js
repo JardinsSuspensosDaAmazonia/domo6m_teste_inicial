@@ -1,5 +1,5 @@
 /**
- * Определение продукта коннекторов
+ * Connectors Product Definition
  * 
  * @author   popitch [at yandex.ru]
  */
@@ -12,22 +12,22 @@ Product.Connector = function () {
 }
   .inherits(Product)
   .override({
-    // расстояние от вершины коннектора до плоскости ребра (средняя его плоскость)
+    // distance from the top of the connector to the rib plane (its middle plane)
     ribPlaneOffset: function (line) {
       return console.log('Product.Connector.ribPlaneOffset() abstract called', this) & 0;
     },
 
-    // ребро, в которое упирается заданное ребро
+    // edge against which a given edge abuts
     ribWall: function (line) {
       return null;
     },
 
-    // расстояние от вершины коннектора до плоскости стены (в которую ребро упирается)
+    // distance from the top of the connector to the plane of the wall (against which the edge rests)
     ribWallOffset: function (line) {
       return 0;
     },
 
-    // вектор от текущей точки вдоль line
+    // vector from the current point along line
     toOtherTail: function (line) {
       var OTHER = (line.$points[0] != this.point) ? (line.$points[1] != this.point) ?
         console.log('Product.Connector.toOtherTail: wrong line') : 0 : 1;
@@ -41,19 +41,19 @@ Product.Connector = function () {
       })[0];
     },
 
-    // вектор к центру от тукущей точки
+    // vector to the center from the current point
     toCenter: function () {
       return this.point.center ?
         Vector.subtract(this.point.center, this.point) :
         (new Vector).subtract(this.point);
     },
 
-    // угол к радиусу в тукущей точке
+    // angle to radius at the current point
     angleByRaduis: function (line) {
       return this.toOtherTail(line).angleWith(this.toCenter());
     },
 
-    // коллекция ребер данного фейса
+    // collection of edges of a given face
     linesByFace: function (face) {
       var point = this.vertex.$points[0];
       return face.$sub.line.map(function () {
@@ -68,11 +68,11 @@ Product.Connector = function () {
     unify: function () {
       var product = this;
 
-      // подготовка схемы
+      // preparation of the diagram
       this.vertex.$scheme.each(function () {
         if (this.isFace) {
           /**
-           * @todo брать не угол реал-фейса, а угол к остальным вершинам
+           * @todo take not the angle of the real face, but the angle to the other vertices
            */
           var reals = this.source.product.realPoints().get();
           var i = this.source.$sub.vertex.index(product.vertex);
@@ -82,7 +82,7 @@ Product.Connector = function () {
         }
       });
 
-      // прокрутим цепочку и выберем единственный вариант
+      // scroll through the chain and select the only option
       if (!this.vertex.selvage) {
         var chain = this.vertex.$scheme.get();
         var sortChains = [];
@@ -100,8 +100,8 @@ Product.Connector = function () {
         this.vertex.$scheme = $(sortChains[0]);
       }
 
-      // цепочка уголов ребра_к_радиусу - треугольника ...
-      // префикс "ground " означает что это край
+      // chain of angles edge_to_radius - triangle ...
+      // the prefix "ground" means it's an edge
       return (this.vertex.selvage ? 'Ground ' : '') +
         this.vertex.$scheme.map(function () {
           return this.isFace ?
@@ -157,7 +157,7 @@ Product.Connector.Joint = function (vertex, params) {
       return (this.whirlAsClock != 0 ? 1 : -1) * line.product.thickness / 2; // @todo any product
     },
 
-    // ребро, в которое упирается заданное ребро
+    // edge against which a given edge abuts
     ribWall: function (line) {
       var vertexIndex = $.inArray(this.vertex, line.$vertexes);
 
@@ -169,7 +169,7 @@ Product.Connector.Joint = function (vertex, params) {
       return nearSlicedLines[0];
     },
 
-    // оконцовщик хвоста ребра
+    // end of the tail of the rib
     getTail: function (line) {
       var vertex = this.vertex,
         point = vertex.$points[0],
@@ -185,7 +185,7 @@ Product.Connector.Joint = function (vertex, params) {
 
       var result = plane.result(point);
       if (Math.abs(result) > 1e-6) {
-        // базовая плоскость смещена (Joint + GoodKarma, Semicone)
+        // reference plane shifted (Joint + GoodKarma, Semicone)
         var $nearLines = line.origin.$nearLinesByVertex[vertexIter];
         var wall;
         $nearLines.each(function () {
@@ -194,12 +194,12 @@ Product.Connector.Joint = function (vertex, params) {
           var otherResult = plane.result(otherPoint);
           if (otherResult * result < 0) {
             wall && console.log('too many walls for one tail');
-            // по другую сторону от плоскости ребра, значит сюда уперлись
+            // on the other side of the plane of the ribs, which means they rested here
             wall = {
               plane: this.product.getPlane().clone(),
               line: this
             };
-            // ориентируем плоскость стены относительно незадействованной здесь вершины лайна
+            // we orient the plane of the wall relative to the unused line vertex here
             if (wall.plane.result(anotherPoint) < 0)
               wall.plane.revert();
           }
@@ -208,7 +208,7 @@ Product.Connector.Joint = function (vertex, params) {
         if (!wall)
           console.log(['Product.Rib::model(): no wall', this]);
 
-        // двигаем стену в сторону сабжевого ребра, учитывая толщину ребра
+        // move the wall towards the saber rib, taking into account the thickness of the rib
         wall.plane.D -= wall.line.product.thickness / 2;
 
 
@@ -234,30 +234,30 @@ Product.Connector.Joint = function (vertex, params) {
           vertex: vertex
         };
       }
-      // смещения нет
+      // no offset
 
       if (!line.sliced) {
         wallLine = vertex.product.ribWall(line);
 
-        // ребро не на краю
+        // the rib is not on the edge
         if (wallLine) {
-          // есть ребро, в которое упирается данное (Joint)
+          // there is an edge against which the given one (Joint) rests
           var wall = {
             plane: wallLine.product.getPlane().clone(),
             line: wallLine
           };
 
-          // ориентируем плоскость стены относительно незадействованной здесь вершины лайна
+          // we orient the plane of the wall relative to the unused line vertex here
           if (wall.plane.result(anotherPoint) < 0)
             wall.plane.revert();
 
-          // двигаем стену в сторону сабжевого ребра, учитывая толщину ребра
+          // move the wall towards the saber rib, taking into account the thickness of the rib
           wall.plane.D -= wall.line.product.thickness / 2;
         }
         else {
           console.error('This code branch must no usage');
 
-          // нет ребра в которое упирается данное (Piped)
+          // there is no edge against which the given one rests (Piped)
           center = vertex.center || line.center || center;
           var lineVector = Vector.subtract(point, anotherPoint);
           var pointVector = Vector.subtract(point, center);
@@ -268,7 +268,7 @@ Product.Connector.Joint = function (vertex, params) {
           };
         }
 
-        // двигаем стену на радиус трубы
+        // move the wall to the radius of the pipe
         var offset = vertex.product.ribWallOffset(line);
         if (offset) {
           wall.plane.D += (wall.plane.result(anotherPoint) > 0 ? -offset : offset);
@@ -287,7 +287,7 @@ Product.Connector.Joint = function (vertex, params) {
         outer.scale(point.length());
 
         return {
-          // точка внешней поверхности
+          // outer surface point
           outer: outer,
           center: center,
           wall: wall.plane,
@@ -295,8 +295,8 @@ Product.Connector.Joint = function (vertex, params) {
         };
       }
 
-      // В НОВОЙ ВЕРСИИ СЮДА НЕ ПОПАДАЕМ
-      console.error('// В НОВОЙ ВЕРСИИ СЮДА НЕ ПОПАДАЕМ');
+      // WE DO NOT GO HERE IN THE NEW VERSION
+      console.error('// WE DO NOT GO HERE IN THE NEW VERSION');
     },
 
     unify: function () {
@@ -305,7 +305,7 @@ Product.Connector.Joint = function (vertex, params) {
   });
 
 
-// Труба (расположена вдоль радиуса) с лучами для крепления ребер, классика для любителей сварки и стыков металл+дерево
+// Pipe (located along the radius) with beams for fastening the ribs, a classic for lovers of welding and metal+wood joints
 Product.Connector.Piped = function (vertex, params) {
   Product.Connector.apply(this, [$.extend({
     type: 'Piped',
@@ -314,7 +314,7 @@ Product.Connector.Piped = function (vertex, params) {
     bilateral: false
   }, params || {})]);
 
-  // габариты приводим к долям радиуса, а получаем в неких единицах измерения
+  // We reduce the dimensions to fractions of the radius, and get them in certain units of measurement
   this.Dpipe *= (this.measure || 1) / this.R;
 }
   .inherits(Product.Connector)
@@ -323,12 +323,12 @@ Product.Connector.Piped = function (vertex, params) {
       return 0;
     },
 
-    // расстояние от вершины коннектора до плоскости стены (в которую ребро упирается)
+    // distance from the top of the connector to the plane of the wall (against which the edge abuts)v
     ribWallOffset: function (line) {
       return this.Dpipe / 2;
     },
 
-    // оконцовщик хвоста ребра
+    // end of the tail of the rib
     getTail: function (line) {
       // take origin line figure
       line = line.origin;
@@ -346,7 +346,7 @@ Product.Connector.Piped = function (vertex, params) {
       var center = line.center || vertex.center || Vector(0);
 
       if (!line.sliced) {
-        // ребро не на краю
+        // the rib is not on the edge
         center = vertex.center || line.center || center;
         var lineVector = Vector.subtract(point, anotherPoint);
         var pointVector = Vector.subtract(point, center);
@@ -356,12 +356,12 @@ Product.Connector.Piped = function (vertex, params) {
           plane: new Plane(wallNormal, point)
         };
 
-        // двигаем стену на радиус трубы
+        // move the wall to the radius of the pipe
         var offset = vertex.product.ribWallOffset(line);
         wall.plane.D += (wall.plane.result(anotherPoint) > 0 ? -offset : offset);
 
         return this.cache.pipedTail[line._enum] = {
-          // точка внешней поверхности
+          // outer surface point
           outer: Solutions.planesCross(line.product.getOuterPlane(), plane, wall.plane),
           center: center,
           wall: wall.plane,
@@ -369,7 +369,7 @@ Product.Connector.Piped = function (vertex, params) {
         };
       }
 
-      // ребро целиком на краю (Piped, Joint)
+      // entire rib on the edge (Piped, Joint)
       line.sliced ||
         console.log(['Product.Rib->getTails()', 'fail']);
 
@@ -395,7 +395,7 @@ Product.Connector.Piped = function (vertex, params) {
       var wallPlane = new Plane(wallNormal, point);
 
 
-      // двигаем стену на радиус трубы
+      // move the wall to the radius of the pipe
       if (offset) {
         wallPlane.D += (wallPlane.result(anotherPoint) > 0 ? -offset : offset);
 
@@ -413,7 +413,7 @@ Product.Connector.Piped = function (vertex, params) {
     unify: function () {
       var product = this;
 
-      // проекция ребер на основание радиус-вектора вершины
+      // projection of edges onto the base of the radius vector of the vertex
       var prev, pinAngleSum = 0;
       var radius = Vector.subtract(this.vertex.$points[0], this.vertex.center);
 
@@ -432,7 +432,7 @@ Product.Connector.Piped = function (vertex, params) {
         return null;
       });
 
-      // углы
+      // angles
       this.$hedgehog.each(function () {
         var angle = (Vector.add(prev.pin, this.pin).length() < 1e-9) ? Math.PI : prev.pin.angleWith(this.pin);
 
@@ -532,7 +532,7 @@ AngleSet.prototype = {
 };
 
 /**
- * Корабль, карандаш, конус... ибо шишка
+ * A ship, a pencil, a cone... for a bump
  */
 Product.Connector.Cone = function (vertex, params) {
   Product.Connector.apply(this, [$.extend({
@@ -552,12 +552,12 @@ Product.Connector.Cone = function (vertex, params) {
       return 0;
     },
 
-    // расстояние от вершины коннектора до плоскости стены (в которую ребро упирается)
+    // distance from the top of the connector to the plane of the wall (against which the edge rests)
     ribWallOffset: function (line) {
       return 0;
     },
 
-    // ключ аккумулятора
+    // battery key
     /*
     pinAccumKey: function(pin, finaly){
       var back = pin.forward ? pin.backAngle : pin.forwardAngle;
@@ -605,9 +605,9 @@ Product.Connector.Cone = function (vertex, params) {
       }
 
       if (!this.vertex.selvage) {
-        // решение зацикленной системы линейных уравнений
+        // solving a looped system of linear equations
         if (this.$hedgehog.length % 2) {
-          // единственно, если лучей нечетное кол-во
+          // only if there is an odd number of rays
           this.$hedgehog.each(function () {
             this.coneAngle = 0;
           });
@@ -631,14 +631,14 @@ Product.Connector.Cone = function (vertex, params) {
           });
         }
         else {
-          // при четном кол-ве сходящихся лучей (ребер)
+          // with an even number of converging rays (edges)
           var sum = [0, 0];
           this.$hedgehog.each(function (i) {
             sum[i % 2] += this.forwardAngle;
           });
           if (Math.abs(sum[0] - sum[1]) < 1e-6 && Math.abs(sum[0] - Math.PI) < 1e-6) {
-            // если сумма углов через один равна Пи, то беск. кол-во решений
-            // выбираем лучшее...
+            // if the sum of the angles through one is equal to Pi, then infinite. number of solutions
+            // choose the best...
             var alfa = 0;
             var mins = [9, 9];
             this.$hedgehog.each(function (i) {
@@ -659,14 +659,14 @@ Product.Connector.Cone = function (vertex, params) {
             });
           }
           else {
-            // иначе решений нет
+            // otherwise there are no solutions
             //console.warn('Cone.unify(): zero solution');
 
             throw 'Cone.unify(): zero solution';
           }
         }
 
-        // аккумуляция значений вычисленых coneAngle для различных соседних углов лучу (ребру)
+        // accumulation of values ​​of calculated coneAngle for various neighboring angles of a ray (edge)
         /*
         this.$hedgehog.each(function(i){
           var angle = this.coneAngle;
@@ -687,8 +687,8 @@ Product.Connector.Cone = function (vertex, params) {
         throw 'accum depricated call';
         /*
       	
-        // край фигуры
-        // попытка вытащить из аккумулятора
+        // edge of the figure
+        // trying to remove it from the battery
         var found, foundMaxus;
         this.$hedgehog.each(function(i){
           var curr = this;
@@ -793,7 +793,7 @@ Product.Connector.Cone = function (vertex, params) {
         'Cone-' + unifier;
     },
 
-    // оконцовщик ребра
+    // rib ender
     getTail: function (line) {
       // take origin line figure
       line = line.origin;
@@ -846,8 +846,8 @@ Product.Connector.Cone = function (vertex, params) {
   });
 
 /**
- * Пол-шишки тоже шишка
- * - это просто нос, полуконус дальше будет
+ * Half a cone is also a cone
+ * - it's just a nose, there will be a half-cone next
  */
 Product.Connector.Nose = function (vertex, params) {
   Product.Connector.apply(this, [$.extend({
@@ -931,7 +931,7 @@ Product.Connector.GoodKarma = function (vertex, params) {
       return 0;
     },
 
-    // ребро, в которое упирается заданное ребро
+    // edge against which a given edge abuts
     //	ribWall: function(line) {
     //		var product = this;
     //
@@ -943,7 +943,7 @@ Product.Connector.GoodKarma = function (vertex, params) {
     //		})[0];
     //	},
 
-    // оконцовщик хвоста ребра
+    // end of the tail of the rib
     getTail: function (line) {
       var vertex = this.vertex,
         point = vertex.$points[0],
@@ -963,11 +963,11 @@ Product.Connector.GoodKarma = function (vertex, params) {
         thirdVertex = wallLine.origin.$vertexes[wallLine.origin.$vertexes[0] === vertex ? 1 : 0],
         thirdPoint = thirdVertex.$points[0];
 
-      // ориентируем плоскость стены относительно незадействованной здесь вершины лайна
+      // we orient the plane of the wall relative to the unused line vertex here
       if (wallPlane.result(secondPoint) < 0)
         wallPlane.revert();
 
-      // двигаем стену в сторону сабжевого ребра, учитывая толщину ребра
+      // move the wall towards the saber rib, taking into account the thickness of the rib
       wallPlane.D += (
         this.whirlAsClock ^
           (Vector.dotProduct(
@@ -988,7 +988,7 @@ Product.Connector.GoodKarma = function (vertex, params) {
       );
 
       return {
-        // точка внешней поверхности
+        // outer surface point
         outer: outer,
         center: Vector(0),
         wall: wallPlane,
@@ -1024,7 +1024,7 @@ Product.Connector.Semicone = function (vertex, params) {
       return 0;
     },
 
-    // оконцовщик хвоста ребра
+    // end of the tail of the rib
     getTail: function (line) {
       var vertex = this.vertex,
         point = vertex.$points[0],
@@ -1050,7 +1050,7 @@ Product.Connector.Semicone = function (vertex, params) {
           point
         ).normalize();
 
-      // ориентируем плоскость стены относительно незадействованной здесь вершины лайна
+      // we orient the plane of the wall relative to the unused line vertex here
       //		if (wallPlane.result(secondPoint) < 0)
       //			wallPlane.revert();
 
@@ -1063,7 +1063,7 @@ Product.Connector.Semicone = function (vertex, params) {
       );
 
       return {
-        // точка внешней поверхности
+        // outer surface point
         outer: outer,
         center: Vector(0),
         wall: wallPlane,

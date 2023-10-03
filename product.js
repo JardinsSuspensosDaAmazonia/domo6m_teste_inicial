@@ -1,5 +1,5 @@
 /**
- * Абстракция изделия, необходимого для постройки кислосферы.
+ * Abstraction of the product needed to build an acid sphere.
  *
  * @author   popitch@yandex.ru
  */
@@ -9,7 +9,7 @@ Product = function (params) {
   this.cache = {};
 }
   .override({
-    // точность вычислений
+    // calculation accuracy
     //PRECISION: 10000,
     //round: function(value) {
     //	return Math.round(value * this.PRECISION) / this.PRECISION;

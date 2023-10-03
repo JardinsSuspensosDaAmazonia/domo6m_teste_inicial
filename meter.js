@@ -1,5 +1,5 @@
 /**
- * Накопитель значений и их статистика
+ * Accumulator of values ​​and their statistics
  *
  * var meter = new Meter;
  *

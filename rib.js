@@ -1,5 +1,5 @@
 /**
- * Определение продукта "ребро"
+ * Definition of the product "rib"
  * 
  * @author   popitch [at yandex.ru]
  */
@@ -15,7 +15,7 @@ Product.Rib = function() {
 }
 .inherits(Product)
 .override({
-	// отдает плоскость, рассекающую ребро пополам и проходящую через центры радиусов вершин
+	// gives a plane cutting the edge in half and passing through the centers of the radii of the vertices
 	getPlane: function(useBindedFace) {
 		if (this.cache.plane[useBindedFace])
 			return this.cache.plane[useBindedFace];
@@ -30,7 +30,7 @@ Product.Rib = function() {
 		 * 3) A*x1 + B*y1 + C*z1 + D = -d1
 		 * 4) A*A  + B*B  + C*C      = 1
 		 */
-		// если line на краю, либо данный конец на краю, то смещение 0
+		// if line is on the edge, or the given end is on the edge, then the offset is 0
 		var d0 =  vv[0].product.ribPlaneOffset(line),
 			d1 = -vv[1].product.ribPlaneOffset(line);
 		var sols = Solutions.twoPlanesAndSphere(
@@ -72,7 +72,7 @@ Product.Rib = function() {
 		if (sols.length == 2 && sols[0].sign == sols[1].sign)
 			console.log({ sols: sols, lineNormal: lineNormal });
 		
-		// выбор решения
+		// choice of solution
 		var plane = ( sols.length == 2 ? sols[0].sign == 1 ? sols[0] : sols[1] : sols[0] ).normalize();
 
 		// Good Karma's (+Semicone) workaround
@@ -87,7 +87,7 @@ Product.Rib = function() {
 		return this.cache.plane[useBindedFace] = plane;
 	},
 	
-	// отдает конфигурацию оконцовок
+	// gives the ending configuration
 	/*final*/ getTails: function(){
 		var line = this.line;
 
@@ -123,7 +123,7 @@ Product.Rib = function() {
 	},
 	
 	getOuterPlane: function(){
-		// !! допущения:
+		// !! assumptions:
 		// 1. both centers is (0,0,0)
 
 		var A = this.line.$points[0], a = A.length(),
@@ -137,7 +137,7 @@ Product.Rib = function() {
 		return new Plane(P, P);
 	},
 
-	// максимальная длина продукта,
+	// maximum product length,
 	maxLength: function(){}
 });
 
@@ -151,13 +151,13 @@ Product.Rib.Beam = function(params) {
 		$.extend({
 			type: 'Beam',
 			title: 'Брус',
-			width: 0,     // ширина бруса (в радиусах) - параллельна радиусу
-			thickness: 0, // толщина
-			R: 0          // радиус сферы должен быть известен!
+			width: 0,     // beam width (in radii) - parallel to the radius
+			thickness: 0, // thickness
+			R: 0          // The radius of the sphere must be known!
 		}, params || {})
 	]);
 	
-	// габариты приводим к долям радиуса, а получаем в неких единицах измерения
+	// We reduce the dimensions to fractions of the radius, and get them in certain units of measurement
 	this.width *= (this.measure || 1) / this.R;
 	this.thickness *= (this.measure || 1) / this.R;
 }
@@ -174,8 +174,8 @@ Product.Rib.Beam = function(params) {
 			// save for given
 			this.backDir = dir.clone();
 			
-			// .outer принадлежат срединной плоскости (ориентирующей продукт)
-			// .inner считаем
+			// .outer belong to the median plane (orienting the product)
+			// .inner count
 			var vect = Vector.crossProduct(plane.normal(), this.wall.normal());
 			vect.scale(
 				Vector.dotProduct(Vector.subtract(this.outer, this.center), vect) > 0 ? -1 : 1
@@ -185,7 +185,7 @@ Product.Rib.Beam = function(params) {
 			vect.normalize().scale(product.width / sin);
 			this.inner = Vector.add(this.outer, vect);
 			
-			// для определения отреза требуются вектора отклонения вершин от этой плоскости к бокам бруса
+			// to determine the cut, vectors of deviation of the vertices from this plane to the sides of the beam are required
 			this.walkers = [ Vector.crossProduct(this.wall.normal(), outerPlane.normal()) ];
 			this.walkers[0].normalize();
 			this.walkers[0].scale(0.5 * product.thickness / plane.normal().cosWith(this.walkers[0]));
@@ -218,7 +218,7 @@ Product.Rib.Beam = function(params) {
 				Vector.component(this.walkers[ direct ? 1 : 0 ], dir)
 			];
 
-			// если меньше градуса отклонение, то считаем что его нет
+			// if there is less than a degree deviation, then we consider that there is none
 			for (var j = 0; j < 2; j++){
 				if (Math.abs(this.bevelSides[j] * 50) < product.thickness / 2)
 					this.bevelSides[j] = 0;
@@ -331,7 +331,7 @@ Product.Rib.Beam = function(params) {
 				figures: $([
 						faces.pop() // outer only
 					]).map(function(){
-						// ориентация полигона
+						// polygon orientation
 						var polypp = this, outerp;
 						
 						$(pp).each(function(){
@@ -464,7 +464,7 @@ Product.Rib.Beam = function(params) {
 				depth: this.width,
 				width: this.maxOuterLength,
 				length: this.maxLength(),
-				height: this.thickness, // толщина доски (бруса) рисуется в высоту
+				height: this.thickness, // the thickness of the board (beam) is drawn in height
 				margin: margin,
 				milkRight: milkRight,
 				resize: false,
@@ -515,7 +515,7 @@ Product.Rib.Beam = function(params) {
 		const mat = this.materialName(),
 			meter = {};
 		
-		// площадь основания (допущение: срез был по оси Y)
+		// base area (assumption: the cut was along the Y axis)
 		if (1 === this.line.origin.$super.face.length){
 			const facePoints = this.line.origin.$super.face[0].$points.get();
 			var pp = this.line.$points.get();
@@ -538,7 +538,7 @@ Product.Rib.Beam = function(params) {
 		meter[mat]['range:' + __('Beam length, mm')] = Product.lengthUnify(this.maxLength() * this.R);
 		//meter[mat]['max:' + __('Max. beam length, mm')] = Product.lengthUnify( this.maxLength() * this.R );
 		
-		// угол сопряжения граней
+		// angle of mating faces
 		var $faces = this.line.origin.$super.face;
 		var $normals = $faces.length == 2 ? $faces.map(function(){
 				return Vector.crossProduct(

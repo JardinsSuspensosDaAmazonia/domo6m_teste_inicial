@@ -1,5 +1,5 @@
 /**
- * Доска для чертежей
+ * Drawing board
  */
 
 Plotter = function (canvas, opts) {
@@ -87,7 +87,7 @@ Plotter = function (canvas, opts) {
   });
   this._frameIn.w += this.xGapDelta;
 
-  // пропорции
+  // proportions
   if (opts.fixOutXProportion) {
     this._frameOut.w = this._frameOut.h * (this._frameIn.w / this._frameIn.h);
   } else {
@@ -448,7 +448,7 @@ Plotter = function (canvas, opts) {
   });
 
 /**
- * Чертеж отрезов бруса
+ * Drawing of timber cuts
  */
 
 Plotter.Beam = function (canvas, opts) {
@@ -590,7 +590,7 @@ Plotter.Beam = function (canvas, opts) {
   });
 
 /**
- * Чертеж треугольника
+ * Triangle drawing
  */
 
 Plotter.Triangle = function (canvas, opts) {
@@ -601,7 +601,7 @@ Plotter.Triangle = function (canvas, opts) {
   this.maxR = Math.max.apply(null, radiuses);
   this.$lines = opts.$lines;
 
-  // вершины A, B, C
+  // vertices A, B, C
   var ABC = this.ABC = [];
   a = -Math.PI / 2;
   for (var i = 0; i < 3; i++) {
@@ -612,7 +612,7 @@ Plotter.Triangle = function (canvas, opts) {
     a -= 2 * angles[(i + 2) % 3];
   }
 
-  // основания высот от вершин на чертеже Ah, Bh, Ch
+  // the bases of the heights from the vertices in the drawing Ah, Bh, Ch
   var ABCh = this.ABCh = [];
   for (var a = 0; a < 3; a++) {
     var b = (a + 1) % 3, c = (a + 2) % 3;
@@ -623,7 +623,7 @@ Plotter.Triangle = function (canvas, opts) {
       ).add(ABC[c]);
   }
 
-  // размер полотна
+  // canvas size
   opts = $.extend({
     width: 2 * this.maxR,
     height: 2 * this.maxR,
@@ -678,8 +678,8 @@ Plotter.Triangle = function (canvas, opts) {
     vertexes: function () {
       var plotter = this;
       $(this.ABC).each(function (i) {
-        // todo: странная проблема разной направленности массивов angles и $vertexes, хотя источник у них один..
-        // подогнал в ручную сверяя со схемой
+        // todo: strange problem of different directions of the angles and $vertexes arrays, although they have the same source..
+        // adjusted manually, checking with the diagram
         var n = 2 - i;
         plotter.vertexLabel(plotter.$vertexes[n].index, this, plotter.$vertexes[n].$super.line)
       });

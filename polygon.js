@@ -1,5 +1,5 @@
 /**
- * Определение продукта многоугольник
+ * Product definition polygon
  * 
  * @author   popitch [at yandex.ru]
  */
@@ -12,8 +12,8 @@ Product.Polygon = function(){
 .inherits(Product)
 .override({
 
-	/** отдает вершины продуктового полигона
-	 *  в сложном случае (например, Joint) вершины не совпадают с вершинами базовой фигуры, задающей форму купола
+	/** gives away the tops of the food range
+	* in a complex case (for example, Joint) the vertices do not coincide with the vertices of the base figure that defines the dome shape
 	 */
 	realPoints: function(){
 		var face = this.face;

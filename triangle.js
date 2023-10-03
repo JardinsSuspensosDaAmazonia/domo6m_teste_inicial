@@ -1,5 +1,5 @@
 /**
- * Определение продукта треугольник
+ * Product definition triangle
  * 
  * @author   popitch [at yandex.ru]
  */
@@ -22,7 +22,7 @@ Product.Triangle.Simple = function(face, params){
 		/* stats */
 		var $reals = this.realPoints();
 		
-		// длины сторон a, b, c
+		// lengths of sides a, b, c
 		var abc = this.abc = new Array(3);
 		var lines = this.lines = new Array(3);
 		// для углов
@@ -40,16 +40,16 @@ Product.Triangle.Simple = function(face, params){
 					(vv[0] == A.vertex && vv[1] == B.vertex) ||
 					(vv[1] == A.vertex && vv[0] == B.vertex);
 			});
-			// угол между плоскостью треугольника и смотрящей в центр
+			// angle between the plane of the triangle and the plane looking at the center
 			var r = A.vertex.points[0].clone().add(B.vertex.points[0]).scale(.5);
 			abcEdges[(i + 2) % 3] = Math.asin(Math.abs(r.cosWith(n)));
 		});
 
-		// Формула Герона позволяет вычислить площадь треугольника (S) по его сторонам
+		// Heron's formula allows you to calculate the area of ​​a triangle (S) based on its sides
 		this.p = (abc[0] + abc[1] + abc[2]) / 2;
 		this.S = Metrics.triangleHeronArea(abc[0], abc[1], abc[2]);
 
-		// углы
+		// angles
 		this.angles = new Array(3);
 		for (var a = 0; a < 3; a++) {
 			var b = (a + 1) % 3, c = (a + 2) % 3;

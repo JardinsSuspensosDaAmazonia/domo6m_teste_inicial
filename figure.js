@@ -18,7 +18,7 @@ function Figure(params) {
   // origin may be updated here
   $.extend(this, params);
 
-  // базовые точки
+  // base points
   this.$points = $(params.$points || params.points ||
     console.log('Figure(): points not present'));
   this.$points.length > 0 ||
@@ -29,7 +29,7 @@ function Figure(params) {
     debugger;
   }
 
-  // тип
+  // type
   this.type = this.type ||
     (this.$points.length < 4 ?
       [null, 'vertex', 'line', 'face'][this.$points.length] : 'polygon');
@@ -42,7 +42,7 @@ function Figure(params) {
 }
 
 Figure.prototype = {
-  // поворот точек фигуры вокруг оси
+  // rotation of the figure's points around an axis
   rotate: function (angle, axis) {
     this.$points.each(function () {
       var v = Vector.rotate(this, angle, axis);
@@ -53,7 +53,7 @@ Figure.prototype = {
     return this;
   },
 
-  // возвращает массив примитивов
+  // returns an array of primitives
   primitives: function () {
     return $([this]);
   },
@@ -364,7 +364,7 @@ Figure.prototype = {
   },
 
   /**
-   * Устанавливает отношения (вложенность) примитивов фигуры
+   * Establishes relationships (nesting) of shape primitives
    * @return this
    */
   relations: function () {
@@ -458,7 +458,7 @@ Figure.prototype = {
   },
 
   /**
-   * Деление фейсов фигуры (равные хорды)
+   * Dividing the faces of a figure (equal chords)
    * @return this
    */
   splitFaces: function (N) {
@@ -522,7 +522,7 @@ Figure.prototype = {
       }
     });
 
-    // заливаем новую форму
+    // fill in a new form
     figure.$primitives = $faces;
     figure.$points.each(function () {
       figure.$primitives.push(new Figure({
@@ -535,7 +535,7 @@ Figure.prototype = {
       figure.$primitives.push(lines[i]);
     }
 
-    // добавляем преобразование к названию фигуры
+    // add a transformation to the shape name
     this.type += '.' + 'v(' + N + ')';
 
     return this;
@@ -545,7 +545,7 @@ Figure.prototype = {
     if (q == 0) return ai;
     if (q == 1) return bi;
     var a = enum2point[ai], b = enum2point[bi];
-    // определение центра кривизны
+    // determining the center of curvature
     var center, selvage = a.center && (center = b.center);
     center = selvage ? center : new Vector();
     /*selvage || (center.radius = 1);*/
@@ -561,7 +561,7 @@ Figure.prototype = {
   },
 
   /**
-   * срез фигуры по координате
+   * slice a figure by coordinate
    * @return this
    */
   sliceByAxis: function (axis, partial, filtrate) {
@@ -614,7 +614,7 @@ Figure.prototype = {
   },
 
   /**
-   * срез фигуры по остающейся доле фейсов в результате
+   * cutting the figure along the remaining portion of the faces as a result
    */
   sliceByFraction: function (startVertex, fraction, filtrate) {
     if (fraction == '1' || fraction == '1/1') {
@@ -710,7 +710,7 @@ Figure.prototype = {
       mid.selvage = line.selvage;
       mid.sliced = line.sliced;
 
-      // вершины рождаются здесь
+      // peaks are born here
       mid._enum = fig.$points.length - pointsBeforeLength;
       fig.$points.push(mid);
       fullerPrimitives.push(vertex = new Figure({
@@ -723,7 +723,7 @@ Figure.prototype = {
       return vertex;
     }
 
-    // вершины образуются из ребер, по две на каждое
+    // vertices are formed from edges, two for each
     fig.$primitives.each(function () {
       if (this.type === 'line') {
         var le = this._enum, vv = this.$sub.vertex;
@@ -731,7 +731,7 @@ Figure.prototype = {
         var vB = divideLine(vv[1], vv[0], this);
         newVertexByLine[le] = [vA, vB];
 
-        // ребра-остатки (середина базовых), половина всех ребер
+        // residual edges (middle of the base ones), half of all edges
         fullerPrimitives.push(new Figure({
           type: 'line',
           points: [vA.$points[0], vB.$points[0]],
@@ -743,7 +743,7 @@ Figure.prototype = {
       }
     });
 
-    // ищет в фейсе новые вершины, образованные от заданных, возвращает в том же порядке
+    // searches the face for new vertices formed from the given ones, returns them in the same order
     function getNewPoints(p0, p1, face) {
       var ret;
       face.$sub.line.each(function () {
@@ -756,10 +756,10 @@ Figure.prototype = {
       return [ret[0].$points[0], ret[1].$points[0]];
     }
 
-    // для вершинных фейсов
+    // for vertex faces
     var newVertexesByVertex = {};
 
-    // грани и половина ребер
+    // edges and half edges
     fig.$primitives.each(function () {
       if (this.type == 'face') {
         var face = this;
@@ -772,12 +772,12 @@ Figure.prototype = {
                 (this.$points[1] === p0 && this.$points[0] === p2);
             })[ 0 ];*/
 
-          // точки нового фейса-остатка
+          // new face-residual points
           var nvv01 = getNewPoints(p0, p1, face);
           v6.push(nvv01[0]);
           v6.push(nvv01[1]);
 
-          // ребра-скосы (образованные срезанием вершины), половина всех ребер
+          // bevel ribs (formed by cutting off the top), half of all ribs
           var nvv12 = getNewPoints(p1, p2, face);
           fullerPrimitives.push(new Figure({
             type: 'line',
@@ -785,7 +785,7 @@ Figure.prototype = {
 						baseLineLength: Math.round(Vector.distance(baseLine.$points[0], baseLine.$points[1]) * 1e+6)*/
           }));
 
-          // для вершинных фейсов
+          // for vertex faces
           newVertexesByVertex[p1._enum] = newVertexesByVertex[p1._enum] || {};
           newVertexesByVertex[p1._enum][p2._enum] = {
             point: nvv12[0],
@@ -799,7 +799,7 @@ Figure.prototype = {
         if (v6.length != 6)
           console.log('v6.length != 6');
 
-        // фейсы-остатки (середина фейсов-предшественников), столько же сколько было фейсов
+        // remnant faces (the middle of predecessor faces), the same number as there were faces
         fullerPrimitives.push(new Figure({
           type: 'face',
           points: v6
@@ -807,7 +807,7 @@ Figure.prototype = {
       }
     });
 
-    // фейсы-скосы (при вершинах, кроме крайних пока)
+    // faces-bevels (at vertices, except for the extreme ones for now)
     fig.$primitives.each(function () {
       if (this.type == 'vertex' && !this.selvage) {
         var aster = newVertexesByVertex[this.$points[0]._enum],
@@ -823,7 +823,7 @@ Figure.prototype = {
           if (pp.length < 5)
             console.log('face points.length < 5');
 
-          // фейсы-скосы (при вершинах), столько же сколько было вершин
+          // faces-bevels (at vertices), as many as there were vertices
           fullerPrimitives.push(new Figure({
             type: 'face',
             points: pp
@@ -905,7 +905,7 @@ Figure.prototype = {
       var point = vertex.$points[0];
       var chain = [];
 
-      // список звеньев цепочки, с указанием остальных составляющих звено точек
+      // a list of chain links, indicating the remaining points that make up the link
       vertex.$supersets.each(function (i) {
         var pp = this.$points.get();
         var pos = $.inArray(point, pp);
@@ -927,7 +927,7 @@ Figure.prototype = {
       });
       var iLost = undefined, countNext = 0, countLost = 0;
 
-      // каждому звену прописывается индекс следующего
+      // each link is assigned the index of the next one
       vertex.$supersets.each(function (i) {
         var iOthers = chain[i].others;
         var iFace = iOthers.length > 1;
@@ -987,11 +987,11 @@ Figure.prototype = {
         return 0;
       });
 
-      // сохраняем упорядоченный, выбранный список надмножеств
+      // save an ordered, selected list of supersets
       vertex.$scheme = $(sortChains[0]);
     });
 
-    // для линий: вершины, дополняющие соседние фейсы
+    // for lines: vertices complementing adjacent faces
     this.subs('line').each(function () {
       var line = this;
       line.$vertexes = line.$sub.vertex;
@@ -1005,7 +1005,7 @@ Figure.prototype = {
         });
       });
 
-      // для линий: для каждой вершины список линий соседних к линии-сабжу
+      // for lines: for each vertex a list of lines adjacent to the subject line
       line.$nearLinesByVertex = $([]);
       line.$vertexes.each(function () {
         var vertex = this,
@@ -1031,7 +1031,7 @@ Figure.prototype = {
       }
     });
 
-    // фейсам выстроим sub- отрезки и вершины по-порядку
+    // let's line up the sub-segments and vertices in order for the faces
     this.subs('face').each(function () {
       const face = this,
         facePoints = face.$points.get();
@@ -1189,7 +1189,7 @@ Figure.prototype = {
   },
 
   /**
-   * Приземление кромки фигуры
+   * Landing the edge of a figure
    */
   groundSliced: function (axis) {
     var points = $.map(this.$primitives, function (p) {
@@ -1219,7 +1219,7 @@ Figure.prototype = {
   },
 
   /**
-   * Унификация примитивов, поиск одинаковых
+   * Unification of primitives, search for identical ones
    * @return Object stat
    *
    * $todo insert product eacher
@@ -1227,12 +1227,12 @@ Figure.prototype = {
   unify: function () {
     var result = { total: {}, count: {} };
 
-    // для некоторых соединений, перед унификацией "крайних" узлов
-    // требуется аккумулятор для накопление инфы об остальных узлах
+    // for some connections, before unifying the “extreme” nodes
+    // a battery is required to accumulate information about other nodes
     var accum = {};
 
-    // сначала те, что не на краю,
-    // и в порядке: коннекторы, ребра, грани
+    // first those that are not on the edge,
+    // and in order: connectors, edges, faces
     var hashOrder = _.where(this.$primitives, { removed: false });
 
     _.each(['vertex', 'line', 'face'], function (type) {
@@ -1282,15 +1282,15 @@ Figure.prototype = {
         stat[unifier].push(this);
       });
 
-      // сортировка коллекции по убыванию кол-ва элементов данного типа
+      // sorting the collection in descending order of the number of elements of this type
       var keys = [];
       $.each(stat, function (key, cont) {
         keys.push({ key: key, cont: cont });
       });
 
-      // сортировка
+      // sorting
       keys.sort(function (a, b) {
-        // по убыванию кол-ва элементов данного типа
+        // Descending number of elements of this type
         if (b.cont.length != a.cont.length)
           return (b.cont.length - a.cont.length);
 
@@ -1300,7 +1300,7 @@ Figure.prototype = {
           if (diff) return diff;
         }
 
-        // сравнение строк-унификаторов
+        // comparison of unifier strings
         if (a.key !== b.key) {
           return ([a.key, b.key].sort()[0] === a.key) ? 1 : -1;
         }
@@ -1330,7 +1330,7 @@ Figure.prototype = {
       });
     });
 
-    // вычисление максимальной длины ребра
+    // calculating the maximum edge length
     var maxOuter = 0, minOuter = Infinity, minInner = null;
     $.each(result.line, function (index, stat) {
       var outer = stat.collect[0].product.maxLength();
@@ -1375,9 +1375,9 @@ Figure.prototype = {
   }
 }
 
-// делает точки окружности равноудаленными с соседями (точки в начале должны быть в одной плоскости)
+// makes the points of the circle equidistant from their neighbors (the points at the beginning must be in the same plane)
 Figure.pointsEquidistant = function ($points, center, radius) {
-  // приведение точек к окружности
+  // bringing points to a circle
   function circle() {
     $points.each(function () {
       this.subtract(center);
@@ -1386,7 +1386,7 @@ Figure.pointsEquidistant = function ($points, center, radius) {
     });
   }
 
-  // соседи
+  // neighbors
   var $near = [];
   $points.each(function (i) {
     var point = this, arr, $dist = [];
@@ -1399,7 +1399,7 @@ Figure.pointsEquidistant = function ($points, center, radius) {
     );
   });
 
-  // итерируем пока не понравится результат
+  // iterate until you like the result
   function aberration() {
     return $points.map(function (i) {
       return Math.abs($near[i][0].distance(this) - $near[i][1].distance(this));
@@ -1408,7 +1408,7 @@ Figure.pointsEquidistant = function ($points, center, radius) {
     }).pop();
   }
   do {
-    // уводим точки в сторону более удаленного соседа
+    // move the points towards a more distant neighbor
     var $dirs = $points.map(function (i) {
       return $near[i][0].clone().subtract(this).add($near[i][1]).subtract(this);
     });
@@ -1457,7 +1457,7 @@ Figure.Octohedron = function (params) {
     params || {}
   );
 
-  // вершины
+  // peaks
   var points = [
     [-1, 0, 0], [1, 0, 0],
     [0, -1, 0], [0, 1, 0],
@@ -1471,7 +1471,7 @@ Figure.Octohedron = function (params) {
       pptPoint: true
     });
 
-    // вершина
+    // vertex
     primitives.push(new Figure({
       type: 'vertex',
       points: [points[i]],
@@ -1479,7 +1479,7 @@ Figure.Octohedron = function (params) {
     }));
   }
 
-  // грани & ребра
+  // branches & ribs
   var faces = _.invoke([
     [0, 5, 3], [0, 3, 4], [0, 4, 2], [0, 2, 5],
     [1, 3, 5], [1, 4, 3], [1, 2, 4], [1, 5, 2]
@@ -1489,7 +1489,7 @@ Figure.Octohedron = function (params) {
 
   for (var i = 0; i < faces.length; i++) {
     var f = faces[i];
-    // грань
+    // edge
     primitives.push(new Figure({
       type: 'face',
       points: [points[f[0]], points[f[1]], points[f[2]]]
@@ -1499,7 +1499,7 @@ Figure.Octohedron = function (params) {
       var n = snakeTail[m];
 
       if (f[m] < f[n]) {
-        // ребро
+        // rib
         primitives.push(new Figure({
           type: 'line',
           points: [points[f[m]], points[f[n]]]
@@ -1554,12 +1554,12 @@ Figure.Icosahedron = function (params) {
     params || {}
   );
 
-  // золотой ключик
+  // Golden Key
   var a = 4 / Math.sqrt(2 * (5 + Math.sqrt(5))) / 2,
     b = Math.sqrt(1 - a * a),
     primitives = [];
 
-  // вершины
+  // peaks
   var points = [
     [-a, 0.0, b], [a, 0.0, b], [-a, 0.0, -b], [a, 0.0, -b],
     [0.0, b, a], [0.0, b, -a], [0.0, -b, a], [0.0, -b, -a],
@@ -1572,7 +1572,7 @@ Figure.Icosahedron = function (params) {
       pptPoint: true
     });
 
-    // вершина
+    // vertex
     primitives.push(new Figure({
       type: 'vertex',
       points: [points[i]],
@@ -1580,7 +1580,7 @@ Figure.Icosahedron = function (params) {
     }));
   }
 
-  // грани & ребра
+  // branches & ribs
   var faces = [
     [0, 4, 1], [0, 9, 4], [9, 5, 4], [4, 5, 8], [4, 8, 1],
     [8, 10, 1], [8, 3, 10], [5, 3, 8], [5, 2, 3], [2, 7, 3],
@@ -1589,7 +1589,7 @@ Figure.Icosahedron = function (params) {
   ], snakeTail = { 0: 1, 1: 2, 2: 0 };
   for (var i = 0; i < faces.length; i++) {
     var f = faces[i];
-    // грань
+    // edge
     primitives.push(new Figure({
       type: 'face',
       points: [points[f[0]], points[f[1]], points[f[2]]]
@@ -1597,7 +1597,7 @@ Figure.Icosahedron = function (params) {
     for (var m in snakeTail) {
       var n = snakeTail[m];
       if (f[m] < f[n]) {
-        // ребро
+        // rib
         primitives.push(new Figure({
           type: 'line',
           points: [points[f[m]], points[f[n]]]
@@ -1680,7 +1680,7 @@ Figure.TetrakisHexahedron = function (params) {
     for (var i = 0, j = 2; i < 3; j = i++) {
       var A = tri[j], B = tri[i];
       if (A._enum < B._enum) {
-        // ребро
+        // rib
         primitives.push(new Figure({ points: [A, B] }));
       }
     }
@@ -1737,7 +1737,7 @@ Figure.PentakisDodecahedron = function (params) {
     for (var i = 0, j = 2; i < 3; j = i++) {
       var A = tri[j], B = tri[i];
       if (A._enum < B._enum) {
-        // ребро
+        // rib
         primitives.push(new Figure({ points: [A, B] }));
       }
     }
