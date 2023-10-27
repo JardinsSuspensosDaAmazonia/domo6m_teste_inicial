@@ -38,7 +38,7 @@ const CONFIG = {
   defaultFigure: {
     // form
     base: 'Icosahedron', // Octohedron
-    detail: 6,
+    detail: 8,
     subdivClass: 'II', //'III_1,2',
     M: 0,
     N: 0,
